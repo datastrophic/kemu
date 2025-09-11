@@ -1,0 +1,18 @@
+# Source configuration:
+# https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-75.16.1/charts/kube-prometheus-stack/values.yaml.
+alertmanager:
+  enabled: false
+
+kubeEtcd:
+  service:
+    targetPort: 2381
+
+prometheusOperator:
+    admissionWebhooks:
+      enabled: false
+      patch:
+        enabled: false
+    tls:
+      enabled: false
+    tlsProxy:
+      enabled: false

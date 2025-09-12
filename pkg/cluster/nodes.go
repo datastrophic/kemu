@@ -10,36 +10,25 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/uuid"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
-	HostnameLabel       = "kubernetes.io/hostname"
-	InstanceTypeLabel   = "node.kubernetes.io/instance-type"
-	ZoneLabel           = "topology.kubernetes.io/zone"
+	HostnameLabel      = "kubernetes.io/hostname"
+	InstanceTypeLabel  = "node.kubernetes.io/instance-type"
+	ZoneLabel          = "topology.kubernetes.io/zone"
 	ManagedByKemuLabel = "kemu.datastrophic.io/managed"
 )
 
-func CreateClusterNodes(clusterConfigPath, kubeconfig string) error {
-	slog.Info("creating KWOK nodes")
-	clusterConfig, err := parseConfig(clusterConfigPath)
-	if err != nil {
-		return err
-	}
+func CreateClusterNodes(config api.ClusterConfig, kubeconfig string) error {
+	slog.Info("creating KWOK cluster nodes")
 
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		return err
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
+	kubeClient, err := kubeClientFromConfig(kubeconfig)
 	if err != nil {
 		return err
 	}
 
 	var nodes []corev1.Node
-	for _, nodeGroup := range clusterConfig.NodeGroups {
+	for _, nodeGroup := range config.Spec.NodeGroups {
 		slog.Info("processing", "node group", nodeGroup.Name)
 		for _, placement := range nodeGroup.Placement {
 			nodes = append(nodes, createNodes(nodeGroup, placement)...)
@@ -48,12 +37,12 @@ func CreateClusterNodes(clusterConfigPath, kubeconfig string) error {
 
 	for _, node := range nodes {
 		slog.Info("creating", "node", node.Name)
-		_, err = clientset.CoreV1().Nodes().Create(context.TODO(), &node, metav1.CreateOptions{})
+		_, err := kubeClient.CoreV1().Nodes().Create(context.TODO(), &node, metav1.CreateOptions{})
 		if err != nil {
 			return err
 		}
 	}
-	slog.Info("KWOK nodes created", "count", len(nodes))
+	slog.Info("nodes created", "count", len(nodes))
 	return nil
 }
 
@@ -73,7 +62,7 @@ func createNodes(nodeGroup api.NodeGroup, placement api.Placement) []corev1.Node
 			"kubernetes.io/os":   "linux",
 			"kubernetes.io/role": "agent",
 			"type":               "kwok",
-			ManagedByKemuLabel:  "true",
+			ManagedByKemuLabel:   "true",
 			HostnameLabel:        hostname,
 			InstanceTypeLabel:    nodeGroup.Name,
 			ZoneLabel:            placement.AvailabilityZone,

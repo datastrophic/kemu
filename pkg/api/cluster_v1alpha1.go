@@ -6,9 +6,13 @@ import (
 
 type ClusterConfig struct {
 	metav1.TypeMeta `yaml:",inline"`
-	NodeGroups      []NodeGroup    `yaml:"nodeGroups"`
-	KindConfig      string         `yaml:"kindConfig"`
-	ClusterAddons   []ClusterAddon `yaml:"clusterAddons"`
+	Spec            ClusterSpec `yaml:"spec"`
+}
+
+type ClusterSpec struct {
+	NodeGroups    []NodeGroup    `yaml:"nodeGroups"`
+	KindConfig    string         `yaml:"kindConfig"`
+	ClusterAddons []ClusterAddon `yaml:"clusterAddons"`
 }
 
 type NodeGroup struct {
@@ -30,8 +34,11 @@ type NodeTemplate struct {
 }
 
 type ClusterAddon struct {
-	Name        string `yaml:"name"`
-	Chart       string `yaml:"chart"`
-	Version     string `yaml:"version"`
-	ValueObject string `yaml:"valueObject"`
+	Name         string `yaml:"name"`
+	Namespace    string `yaml:"namespace"`
+	Chart        string `yaml:"chart"`
+	RepoName     string `yaml:"repoName"`
+	RepoURL      string `yaml:"repoURL"`
+	Version      string `yaml:"version"`
+	ValuesObject string `yaml:"valuesObject"`
 }

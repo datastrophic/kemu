@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"datastrophic.io/kemu/pkg/api"
-	"github.com/hashicorp/go-multierror"
 	"helm.sh/helm/v3/pkg/repo"
 
 	helmclient "github.com/mittwald/go-helm-client"
@@ -14,8 +13,6 @@ import (
 
 func InstallOrUpgradeAddons(config api.ClusterConfig, kubeconfig string) error {
 	slog.Info("installing cluster addons")
-	var result *multierror.Error
-
 	helmClient, err := helmClientFromConfig(kubeconfig, "")
 	if err != nil {
 		return err
@@ -31,10 +28,9 @@ func InstallOrUpgradeAddons(config api.ClusterConfig, kubeconfig string) error {
 	}
 	for _, r := range repos {
 		slog.Info("adding Helm Chart repository", "name", r.Name, "url", r.URL)
-		result = multierror.Append(result, helmClient.AddOrUpdateChartRepo(r))
-	}
-	if result.ErrorOrNil() != nil {
-		return result.ErrorOrNil()
+		if err = helmClient.AddOrUpdateChartRepo(r); err != nil {
+			return err
+		}
 	}
 
 	// Install Helm Charts.
@@ -44,8 +40,7 @@ func InstallOrUpgradeAddons(config api.ClusterConfig, kubeconfig string) error {
 		// Reinitialize the client to match the target release namespace.
 		helmClient, err = helmClientFromConfig(kubeconfig, addon.Namespace)
 		if err != nil {
-			result = multierror.Append(err)
-			continue
+			return err
 		}
 
 		release := &helmclient.ChartSpec{
@@ -60,7 +55,10 @@ func InstallOrUpgradeAddons(config api.ClusterConfig, kubeconfig string) error {
 		}
 
 		_, err = helmClient.InstallOrUpgradeChart(context.Background(), release, &helmclient.GenericHelmOptions{})
-		result = multierror.Append(err)
+		if err != nil {
+			return err
+		}
+		slog.Info("addon installed", "name", addon.Name, "namespace", addon.Namespace, "chart", addon.Chart, "version", addon.Version)
 	}
-	return result.ErrorOrNil()
+	return err
 }

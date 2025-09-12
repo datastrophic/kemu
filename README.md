@@ -5,28 +5,20 @@ Easily create emulated Kubernetes clusters with 1000s of nodes
 for workload scheduling experimentation and analysis.
 
 ## Quickstart
-Create Kind cluster:
+#### Install `kemu`:
 ```shell
-make create-cluster
+go install ...
 ```
 
-Install KWOK controller and Prometheus operator for observability:
+#### Create an example cluster:
 ```shell
-make install
+kemu create-cluster --cluster-config examples/gcp-cluster.yaml --kubeconfig $(pwd)/kubeconfig
 ```
 
-Export `KUBECONFIG`:
+#### Explore the cluster:
 ```shell
 export KUBECONFIG=$(pwd)/.run/kubeconfig
-```
 
-Create an emulated cluster:
-```shell
-go run . create-cluster --cluster-config examples/gcp-cluster.yaml --kubeconfig "${KUBECONFIG}"
-```
-
-Explore created cluster (`kubectl`):
-```shell
 kubectl get nodes
 
 # Example output:

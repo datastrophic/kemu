@@ -29,7 +29,7 @@ func helmClientFromConfig(kubeconfig, namespace string) (helmclient.Client, erro
 	options := &helmclient.KubeConfClientOptions{
 		Options: &helmclient.Options{
 			Namespace: namespace,
-			Debug:     false,
+			Debug:     true,
 		},
 		KubeConfig: kubecfgBytes,
 	}

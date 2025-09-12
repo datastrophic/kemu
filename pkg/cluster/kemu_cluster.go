@@ -1,6 +1,8 @@
 package cluster
 
-import "log/slog"
+import (
+	"log/slog"
+)
 
 func CreateKemuCluster(configPath, name, kubeconfig string) error {
 	slog.Info("creating KEMU cluster", "name", name)
@@ -17,7 +19,6 @@ func CreateKemuCluster(configPath, name, kubeconfig string) error {
 	if err != nil {
 		return err
 	}
-
 	err = CreateClusterNodes(clusterConfig, kubeconfig)
 	if err != nil {
 		return err

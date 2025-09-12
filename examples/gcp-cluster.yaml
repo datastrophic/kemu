@@ -33,7 +33,7 @@ spec:
       repoName: kwok
       repoURL: https://kwok.sigs.k8s.io/charts/
       namespace: kube-system
-      chart: kwok/kwok-stage-fast
+      chart: kwok/stage-fast
       version: 0.2.0
     - name: prometheus
       repoName: prometheus-community

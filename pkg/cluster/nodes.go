@@ -59,7 +59,7 @@ func createNodes(nodeGroup api.NodeGroup, placement api.Placement) []corev1.Node
 
 		labels := map[string]string{
 			"kubernetes.io/arch": "arm64",
-			"kubernetes.io/os":   "linux",
+			"kubernetes.io/os":   "kemu",
 			"kubernetes.io/role": "agent",
 			"type":               "kwok",
 			ManagedByKemuLabel:   "true",
@@ -93,10 +93,11 @@ func createNodes(nodeGroup api.NodeGroup, placement api.Placement) []corev1.Node
 				Allocatable: resources,
 				NodeInfo: corev1.NodeSystemInfo{
 					Architecture:    "arm64",
-					OperatingSystem: "linux",
-					KubeletVersion:  "v1.33.1",
+					OperatingSystem: "kemu",
+					KubeletVersion:  "fake",
 					MachineID:       string(uuid.NewUUID()),
 				},
+				Phase: corev1.NodeRunning,
 			},
 		}
 

@@ -1,0 +1,16 @@
+apiVersion: kemu.datastrophic.io/v1alpha1
+kind: ClusterConfig
+spec:
+  clusterAddons:
+    - name: kwok
+      repoName: kwok
+      repoURL: https://kwok.sigs.k8s.io/charts/
+      namespace: kube-system
+      chart: kwok/kwok
+      version: 0.2.0
+    - name: kwok-stage-fast
+      repoName: kwok
+      repoURL: https://kwok.sigs.k8s.io/charts/
+      namespace: kube-system
+      chart: kwok/stage-fast
+      version: 0.2.0

@@ -31,7 +31,7 @@ func CreateClusterNodes(config api.ClusterConfig, kubeconfig string) error {
 	for _, nodeGroup := range config.Spec.NodeGroups {
 		slog.Info("processing", "node group", nodeGroup.Name)
 		for _, placement := range nodeGroup.Placement {
-			nodes = append(nodes, createNodes(nodeGroup, placement)...)
+			nodes = append(nodes, createNodeSpecs(nodeGroup, placement)...)
 		}
 	}
 
@@ -46,7 +46,7 @@ func CreateClusterNodes(config api.ClusterConfig, kubeconfig string) error {
 	return nil
 }
 
-func createNodes(nodeGroup api.NodeGroup, placement api.Placement) []corev1.Node {
+func createNodeSpecs(nodeGroup api.NodeGroup, placement api.Placement) []corev1.Node {
 	namePrefix := fmt.Sprintf("%s-%s", nodeGroup.Name, placement.AvailabilityZone)
 	var nodes []corev1.Node
 

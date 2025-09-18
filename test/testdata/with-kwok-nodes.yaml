@@ -1,0 +1,49 @@
+apiVersion: kemu.datastrophic.io/v1alpha1
+kind: ClusterConfig
+spec:
+  clusterAddons:
+    - name: kwok
+      repoName: kwok
+      repoURL: https://kwok.sigs.k8s.io/charts/
+      namespace: kube-system
+      chart: kwok/kwok
+      version: 0.2.0
+    - name: kwok-stage-fast
+      repoName: kwok
+      repoURL: https://kwok.sigs.k8s.io/charts/
+      namespace: kube-system
+      chart: kwok/stage-fast
+      version: 0.2.0
+  nodeGroups:
+    - name: a2-ultragpu-8g
+      placement:
+        - availabilityZone: use1
+          replicas: 5
+        - availabilityZone: use2
+          replicas: 5
+        - availabilityZone: use3
+          replicas: 5
+      nodeTemplate:
+        metadata:
+          labels:
+            datastrophic.io/gpu-type: nvidia-a100-80gb
+        capacity:
+          cpu: 96
+          memory: 1360Gi
+          ephemeralStorage: 3Ti
+          nvidia.com/gpu: 8
+    - name: a3-highgpu-8g
+      placement:
+        - availabilityZone: use1
+          replicas: 10
+        - availabilityZone: use2
+          replicas: 10
+      nodeTemplate:
+        metadata:
+          labels:
+            datastrophic.io/gpu-type: nvidia-h100-80gb
+        capacity:
+          cpu: 208
+          memory: 1872Gi
+          ephemeralStorage: 6Ti
+          nvidia.com/gpu: 8

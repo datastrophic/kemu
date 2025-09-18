@@ -55,3 +55,14 @@ kubectl get nodes
 # a3-ultragpu-8g-use1-4   Ready    agent           95s     v1.33.1
 # kwok-control-plane      Ready    control-plane   7m58s   v1.33.1
 ```
+
+## Development
+KEMU relies on end-to-end and integration tests to verify its functionality.
+Tests require Kind, Docker, and Helm being installed on the machine where they run.
+A KEMU cluster is created based on provided configuration by each of the tests.
+
+Running tests with coverage:
+```shell
+go test -coverprofile=coverage.out -coverpkg=./pkg/... ./test/...
+go tool cover -html=coverage.out -o coverage.html
+```

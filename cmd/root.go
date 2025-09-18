@@ -8,7 +8,6 @@ import (
 
 var (
 	clusterName string
-	kubeconfig  string
 )
 
 var rootCmd = &cobra.Command{
@@ -26,6 +25,5 @@ func Execute() {
 }
 
 func init() {
-	createClusterCmd.PersistentFlags().StringVar(&clusterName, "name", "kemu", "name of the KEMU cluster")
-	createClusterCmd.Flags().StringVar(&kubeconfig, "kubeconfig", "", "KUBECONFIG file path for target KEMU cluster")
+	rootCmd.PersistentFlags().StringVar(&clusterName, "name", "kemu", "name of the KEMU cluster")
 }

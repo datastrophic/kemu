@@ -10,7 +10,7 @@ The goal of the project is to provide a fully automated reproducible bootstrap
 of emulated clusters based on declarative specification.
 
 Follow the [Quickstart](#quickstart) guide to see KEMU in action, and the
-[Overview](#overview) section for additional details and configuration walkthrough.
+[Overview](#kemu-overview) section for additional details and configuration walkthrough.
 
 ## Quickstart
 #### Prerequisites
@@ -20,19 +20,21 @@ Follow the [Quickstart](#quickstart) guide to see KEMU in action, and the
 * [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 * [Helm](https://helm.sh/docs/intro/install/)
 
+> NOTE: Following steps should be run from the root of this project.
+
 #### Install `kemu`
 ```shell
-go install ...
+go install ./...
 ```
 
-#### Create an example cluster:
+#### Create a cluster
 ```shell
-kemu create-cluster --cluster-config examples/gcp-cluster.yaml --kubeconfig $(pwd)/kubeconfig
+kemu create-cluster --cluster-config examples/gcp-cluster.yaml --kubeconfig $(pwd)/kemu.config
 ```
 
-#### Explore the cluster:
+#### Explore the cluster
 ```shell
-export KUBECONFIG=$(pwd)/.run/kubeconfig
+export KUBECONFIG=$(pwd)/kemu.config
 
 kubectl get nodes
 
@@ -71,7 +73,12 @@ kubectl get nodes
 # kwok-control-plane      Ready    control-plane   7m58s   v1.33.1
 ```
 
-## Overview
+#### Delete the cluster
+```shell
+kemu delete-cluster
+```
+
+## KEMU Overview
 KEMU provides a single-spec declarative approach for configuring control plane nodes,
 installing cluster addons, and defining emulated cluster nodes with various capacity
 and placement options.
@@ -167,8 +174,15 @@ KEMU relies on end-to-end and integration tests to verify its functionality.
 Tests require Kind, Docker, and Helm being installed on the machine where they run.
 A KEMU cluster is created based on provided configuration by each of the tests.
 
-Running tests with coverage:
+Run parallel tests with Ginkgo:
 ```shell
-go test -coverprofile=coverage.out -coverpkg=./pkg/... ./test/...
+go install github.com/onsi/ginkgo/v2/ginkgo@latest
+
+ginkgo -v -p ./...
+```
+
+Run tests with coverage:
+```shell
+ginkgo -v -p -coverprofile=coverage.out -coverpkg=./pkg/... ./...
 go tool cover -html=coverage.out -o coverage.html
 ```

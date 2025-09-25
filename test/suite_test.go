@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os/exec"
 	"testing"
 
 	"datastrophic.io/kemu/test/utils"
@@ -14,27 +13,42 @@ import (
 	"sigs.k8s.io/e2e-framework/support/kind"
 )
 
+// rootProjectDir is configured at the suite setup time and is used
+// by all tests to avoid relative path inconsistencies.
+var rootProjectDir string
+
 func TestKEMU(t *testing.T) {
 	format.MaxLength = 0
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "running KEMU test suite")
 }
 
-var _ = BeforeSuite(func() {
+// Using SynchronizedBeforeSuite to set rootProjectDir.
+var _ = SynchronizedBeforeSuite(func() []byte {
+	//runs *only* on process #1
+	rootDir, err := utils.GetProjectDir()
+
+	Expect(err).NotTo(HaveOccurred())
+	Expect(rootDir).NotTo(BeEmpty())
+
+	return []byte(rootDir)
+}, func(data []byte) {
+	//runs on *all* processes
+	rootProjectDir = string(data)
+
 	logTextHandler := slog.NewTextHandler(GinkgoWriter, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	})
 
 	logger := slog.New(logTextHandler)
 	slog.SetDefault(logger)
-
-	cmd := exec.Command("go", "build", "-cover", "-o", ".run/kemu", "main.go")
-	_, err := utils.Run(cmd)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred(), "failed to build the kemu binary")
 })
 
-var _ = AfterSuite(func() {
-	knownClusters := []string{"e2e-cli-test-cluster", "it-simple", "it-with-kind-config"}
+var _ = SynchronizedAfterSuite(func() {
+	//runs on *all* processes, noop
+}, func() {
+	//runs *only* on process #1
+	knownClusters := []string{"it-simple", "it-already-exists", "it-with-kind-config", "it-with-addons", "it-with-kwok-nodes", "it-with-full-config", "e2e-cli-test-cluster"}
 	for _, cluster := range knownClusters {
 		err := kind.NewProvider().SetDefaults().WithName(cluster).Destroy(context.Background())
 		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("failed to destroy cluster %s", cluster))

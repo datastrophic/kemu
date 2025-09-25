@@ -11,11 +11,23 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/e2e-framework/support/kind"
 )
 
 var _ = Describe("kemu CLI", Ordered, func() {
 	clusterName := "e2e-cli-test-cluster"
 	kubeconfig := ".run/e2e-simple.conf"
+
+	BeforeAll(func() {
+		cmd := exec.Command("go", "build", "-o", ".run/kemu", "main.go")
+		_, err := utils.Run(cmd)
+		ExpectWithOffset(1, err).NotTo(HaveOccurred(), "failed to build the kemu binary")
+	})
+
+	AfterAll(func() {
+		err := kind.NewProvider().SetDefaults().WithName(clusterName).Destroy(context.Background())
+		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("failed to destroy cluster %s", clusterName))
+	})
 
 	Context("create-cluster command", func() {
 		It("should create an empty Kind cluster based on cluster spec", func() {

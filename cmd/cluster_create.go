@@ -31,5 +31,5 @@ var createClusterCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(createClusterCmd)
 	createClusterCmd.Flags().StringVar(&clusterConfigPath, "cluster-config", "", "KEMU cluster configuration file")
-	createClusterCmd.Flags().StringVar(&kubeconfig, "kubeconfig", "", "KUBECONFIG file path for target KEMU cluster")
+	createClusterCmd.Flags().StringVar(&kubeconfig, "kubeconfig", "kemu.config", "KUBECONFIG file for accessing created KEMU cluster")
 }

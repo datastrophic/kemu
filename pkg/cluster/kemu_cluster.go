@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"fmt"
 	"log/slog"
 )
 
@@ -11,6 +12,9 @@ func CreateKemuCluster(configPath, name, kubeconfig string) error {
 		return err
 	}
 
+	if kindClusterExists(name) {
+		return fmt.Errorf("underlying kind cluster %q already exists. it needs to be deleted first", name)
+	}
 	if err = createKindClusterWithConfig(clusterConfig, name, kubeconfig); err != nil {
 		return err
 	}

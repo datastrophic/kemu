@@ -5,11 +5,23 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	"datastrophic.io/kemu/pkg/api"
 	"sigs.k8s.io/e2e-framework/klient"
+	"sigs.k8s.io/e2e-framework/pkg/utils"
 	"sigs.k8s.io/e2e-framework/third_party/kind"
 )
+
+func kindClusterExists(name string) bool {
+	clusters := utils.FetchCommandOutput("kind get clusters")
+	for _, c := range strings.Split(clusters, "\n") {
+		if c == name {
+			return true
+		}
+	}
+	return false
+}
 
 func createKindClusterWithConfig(config api.ClusterConfig, name, kubeconfig string) error {
 	slog.Info("creating kind cluster", "name", name, "kubeconfig", kubeconfig)
@@ -24,17 +36,14 @@ func createKindClusterWithConfig(config api.ClusterConfig, name, kubeconfig stri
 		defer os.Remove(configFile.Name())
 	}
 
-	// NOTE: there doesn't seem to be a way of passing the KUBECONFIG location
-	// to the Kind cluster provider, but it respects the env var setting.
-	err = os.Setenv("KUBECONFIG", kubeconfig)
-
 	kindClusterProvider := kind.NewProvider().SetDefaults().WithName(name)
+	args := []string{"--kubeconfig", kubeconfig}
 	if configFile != nil {
 		slog.Info(fmt.Sprintf("using provided kind config:\n%s", config.Spec.KindConfig))
-		_, err = kindClusterProvider.CreateWithConfig(context.TODO(), configFile.Name())
-	} else {
-		_, err = kindClusterProvider.Create(context.TODO())
+		args = append(args, "--config", configFile.Name())
 	}
+
+	_, err = kindClusterProvider.Create(context.Background(), args...)
 	if err != nil {
 		return err
 	}

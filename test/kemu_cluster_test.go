@@ -34,13 +34,13 @@ func deleteCluster(clusterName string) {
 	Expect(output).NotTo(ContainSubstring(clusterName), "kind cluster e2e-simple still exist")
 }
 
-var _ = Describe("kemu API", Ordered, func() {
-	clusterName := "it-simple"
-	kubeconfig := ".run/it-simple.config"
+var _ = Describe("kemu API", func() {
+	Context("with simple spec", Ordered, func() {
+		clusterName := "it-simple"
 
-	Context("CreateKemuCluster", func() {
-		It("should create a simple Kind cluster based on cluster spec", func() {
-			err := cluster.CreateKemuCluster("test/testdata/simple.yaml", clusterName, kubeconfig)
+		It("should create a simple cluster based on cluster spec", func() {
+			kubeconfig := fmt.Sprintf("%s/.run/it-simple.config", rootProjectDir)
+			err := cluster.CreateKemuCluster(fmt.Sprintf("%s/test/testdata/simple.yaml", rootProjectDir), clusterName, kubeconfig)
 			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
 
 			client := getClient(kubeconfig)
@@ -48,21 +48,38 @@ var _ = Describe("kemu API", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred(), "failed to list nodes")
 			Expect(len(nodes.Items)).To(Equal(1), fmt.Sprintf("expected 1 node, got %d", len(nodes.Items)))
 		})
-	})
-	Context("DeleteKemuCluster", func() {
 		It("should delete created Kind cluster", func() {
 			deleteCluster(clusterName)
 		})
 	})
-})
 
-var _ = Describe("kemu API", Ordered, func() {
-	clusterName := "it-with-kind-config"
-	kubeconfig := ".run/it-with-kind.config"
+	Context("with existing cluster", Ordered, func() {
+		clusterName := "it-already-exists"
 
-	Context("CreateKemuCluster", func() {
-		It("should create a Kind cluster with custom Kind config", func() {
-			err := cluster.CreateKemuCluster("test/testdata/with-kind-config.yaml", clusterName, kubeconfig)
+		It("should return an error when the cluster being created already exists", func() {
+			kubeconfig := fmt.Sprintf("%s/.run/it-already-exists.config", rootProjectDir)
+			By("creating a new cluster", func() {
+
+				err := cluster.CreateKemuCluster(fmt.Sprintf("%s/test/testdata/simple.yaml", rootProjectDir), clusterName, kubeconfig)
+				Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
+			})
+			By("returning an error when the cluster being created already exists", func() {
+
+				err := cluster.CreateKemuCluster(fmt.Sprintf("%s/test/testdata/simple.yaml", rootProjectDir), clusterName, kubeconfig)
+				Expect(err).To(HaveOccurred(), "expected to fail when cluster already exists")
+			})
+		})
+		It("should delete created Kind cluster", func() {
+			deleteCluster(clusterName)
+		})
+	})
+
+	Context("with custom kind config", Ordered, func() {
+		clusterName := "it-with-kind-config"
+
+		It("should create a KEMU cluster with custom Kind config", func() {
+			kubeconfig := fmt.Sprintf("%s/.run/it-with-kind.config", rootProjectDir)
+			err := cluster.CreateKemuCluster(fmt.Sprintf("%s/test/testdata/with-kind-config.yaml", rootProjectDir), clusterName, kubeconfig)
 			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
 
 			client := getClient(kubeconfig)
@@ -72,21 +89,16 @@ var _ = Describe("kemu API", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred(), "failed to list nodes")
 			Expect(len(nodes.Items)).To(Equal(3), fmt.Sprintf("expected 3 nodes, got %d", len(nodes.Items)))
 		})
-	})
-	Context("DeleteKemuCluster", func() {
 		It("should delete created Kind cluster with custom Kind config", func() {
 			deleteCluster(clusterName)
 		})
 	})
-})
 
-var _ = Describe("kemu API", Ordered, func() {
-	clusterName := "it-with-addons"
-	kubeconfig := ".run/it-with-addons.config"
-
-	Context("CreateKemuCluster", func() {
-		It("should create a Kind cluster with addons", func() {
-			err := cluster.CreateKemuCluster("test/testdata/with-addons.yaml", clusterName, kubeconfig)
+	Context("with cluster addons", Ordered, func() {
+		clusterName := "it-with-addons"
+		It("should create a KEMU cluster with addons", func() {
+			kubeconfig := fmt.Sprintf("%s/.run/it-with-addons.config", rootProjectDir)
+			err := cluster.CreateKemuCluster(fmt.Sprintf("%s/test/testdata/with-addons.yaml", rootProjectDir), clusterName, kubeconfig)
 			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
 
 			client := getClient(kubeconfig)
@@ -94,21 +106,17 @@ var _ = Describe("kemu API", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred(), "failed to get addon deployment")
 			Expect(d.Status.ReadyReplicas).To(Equal(int32(1)), fmt.Sprintf("expected kwok addon deployment to have 1 ready replica but got %d", d.Status.ReadyReplicas))
 		})
-	})
-	Context("DeleteKemuCluster", func() {
 		It("should delete created Kind cluster with addons", func() {
 			deleteCluster(clusterName)
 		})
 	})
-})
 
-var _ = Describe("kemu API", Ordered, func() {
-	clusterName := "it-with-kwok-nodes"
-	kubeconfig := ".run/it-with-kwok.config"
+	Context("with kwok nodes", Ordered, func() {
+		clusterName := "it-with-kwok-nodes"
 
-	Context("CreateKemuCluster", func() {
-		It("should create a Kind cluster with kwok nodes", func() {
-			err := cluster.CreateKemuCluster("test/testdata/with-kwok-nodes.yaml", clusterName, kubeconfig)
+		It("should create a KEMU cluster with kwok nodes", func() {
+			kubeconfig := fmt.Sprintf("%s/.run/it-with-kwok.config", rootProjectDir)
+			err := cluster.CreateKemuCluster(fmt.Sprintf("%s/test/testdata/with-kwok-nodes.yaml", rootProjectDir), clusterName, kubeconfig)
 			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
 
 			client := getClient(kubeconfig)
@@ -151,21 +159,16 @@ var _ = Describe("kemu API", Ordered, func() {
 				Expect(len(nodes.Items)).To(Equal(tc.expected), fmt.Sprintf("expected %d nodes, got %d", tc.expected, len(nodes.Items)))
 			}
 		})
-	})
-	Context("DeleteKemuCluster", func() {
 		It("should delete created Kind cluster with kwok nodes", func() {
 			deleteCluster(clusterName)
 		})
 	})
-})
+	Context("with full config", Ordered, func() {
+		clusterName := "it-with-full-config"
 
-var _ = Describe("kemu API", Ordered, func() {
-	clusterName := "it-with-full-config"
-	kubeconfig := ".run/it-with-full-config.config"
-
-	Context("CreateKemuCluster", func() {
-		It("should create a Kind cluster with full config", func() {
-			err := cluster.CreateKemuCluster("test/testdata/with-full-config.yaml", clusterName, kubeconfig)
+		It("should create a KEMU cluster with full config", func() {
+			kubeconfig := fmt.Sprintf("%s/.run/it-with-full-config.config", rootProjectDir)
+			err := cluster.CreateKemuCluster(fmt.Sprintf("%s/test/testdata/with-full-config.yaml", rootProjectDir), clusterName, kubeconfig)
 			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
 
 			client := getClient(kubeconfig)
@@ -221,8 +224,6 @@ var _ = Describe("kemu API", Ordered, func() {
 				Expect(len(nodes.Items)).To(Equal(tc.expected), fmt.Sprintf("expected %d nodes, got %d", tc.expected, len(nodes.Items)))
 			}
 		})
-	})
-	Context("DeleteKemuCluster", func() {
 		It("should delete created Kind cluster with full config", func() {
 			deleteCluster(clusterName)
 		})

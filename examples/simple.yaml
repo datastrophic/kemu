@@ -1,0 +1,50 @@
+apiVersion: kemu.datastrophic.io/v1alpha1
+kind: ClusterConfig
+spec:
+  kindConfig: |
+    kind: Cluster
+    apiVersion: kind.x-k8s.io/v1alpha4
+    nodes:
+      - role: control-plane
+      - role: worker
+      - role: worker
+  clusterAddons:
+    - name: kwok
+      repoName: kwok
+      repoURL: https://kwok.sigs.k8s.io/charts/
+      namespace: kube-system
+      chart: kwok/kwok
+      version: 0.2.0
+    - name: kwok-stage-fast
+      repoName: kwok
+      repoURL: https://kwok.sigs.k8s.io/charts/
+      namespace: kube-system
+      chart: kwok/stage-fast
+      version: 0.2.0
+    - name: prometheus
+      repoName: prometheus-community
+      repoURL: https://prometheus-community.github.io/helm-charts
+      namespace: monitoring
+      chart: prometheus-community/kube-prometheus-stack
+      version: 75.16.1
+      valuesObject: |
+        alertmanager:
+          enabled: false
+  nodeGroups:
+    - name: a2-ultragpu-8g
+      placement:
+        - availabilityZone: use1
+          replicas: 5
+        - availabilityZone: use2
+          replicas: 5
+        - availabilityZone: use3
+          replicas: 5
+      nodeTemplate:
+        metadata:
+          labels:
+            datastrophic.io/gpu-type: nvidia-a100-80gb
+        capacity:
+          cpu: 96
+          memory: 1360Gi
+          ephemeralStorage: 3Ti
+          nvidia.com/gpu: 8

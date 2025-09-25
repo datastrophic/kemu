@@ -14,6 +14,26 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// Create client from kubeconfig with assertions.
+func getClient(kubeconfig string) *kubernetes.Clientset {
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	Expect(err).NotTo(HaveOccurred(), "failed to build config from kubeconfig")
+	c, err := kubernetes.NewForConfig(config)
+	Expect(err).NotTo(HaveOccurred(), "failed to build client from kubeconfig")
+	return c
+}
+
+// Delete cluster with assertions.
+func deleteCluster(clusterName string) {
+	err := cluster.DeleteKemuCluster(clusterName)
+	Expect(err).NotTo(HaveOccurred(), "failed to delete cluster")
+
+	cmd := exec.Command("kind", "get", "clusters")
+	output, err := utils.Run(cmd)
+	Expect(err).NotTo(HaveOccurred(), "failed to list kind clusters")
+	Expect(output).NotTo(ContainSubstring(clusterName), "kind cluster e2e-simple still exist")
+}
+
 var _ = Describe("kemu API", Ordered, func() {
 	clusterName := "it-simple"
 	kubeconfig := ".run/it-simple.config"
@@ -23,11 +43,7 @@ var _ = Describe("kemu API", Ordered, func() {
 			err := cluster.CreateKemuCluster("test/testdata/simple.yaml", clusterName, kubeconfig)
 			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
 
-			config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-			Expect(err).NotTo(HaveOccurred(), "failed to build config from kubeconfig")
-			client, err := kubernetes.NewForConfig(config)
-			Expect(err).NotTo(HaveOccurred(), "failed to build client from kubeconfig")
-
+			client := getClient(kubeconfig)
 			nodes, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred(), "failed to list nodes")
 			Expect(len(nodes.Items)).To(Equal(1), fmt.Sprintf("expected 1 node, got %d", len(nodes.Items)))
@@ -35,13 +51,7 @@ var _ = Describe("kemu API", Ordered, func() {
 	})
 	Context("DeleteKemuCluster", func() {
 		It("should delete created Kind cluster", func() {
-			err := cluster.DeleteKemuCluster(clusterName)
-			Expect(err).NotTo(HaveOccurred(), "failed to delete cluster")
-
-			cmd := exec.Command("kind", "get", "clusters")
-			output, err := utils.Run(cmd)
-			Expect(err).NotTo(HaveOccurred(), "failed to list kind clusters")
-			Expect(output).NotTo(ContainSubstring(clusterName), "kind cluster e2e-simple still exist")
+			deleteCluster(clusterName)
 		})
 	})
 })
@@ -55,11 +65,7 @@ var _ = Describe("kemu API", Ordered, func() {
 			err := cluster.CreateKemuCluster("test/testdata/with-kind-config.yaml", clusterName, kubeconfig)
 			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
 
-			config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-			Expect(err).NotTo(HaveOccurred(), "failed to build config from kubeconfig")
-			client, err := kubernetes.NewForConfig(config)
-			Expect(err).NotTo(HaveOccurred(), "failed to build client from kubeconfig")
-
+			client := getClient(kubeconfig)
 			nodes, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{
 				LabelSelector: "kemu.datastrophic.io/e2e=true",
 			})
@@ -69,13 +75,7 @@ var _ = Describe("kemu API", Ordered, func() {
 	})
 	Context("DeleteKemuCluster", func() {
 		It("should delete created Kind cluster with custom Kind config", func() {
-			err := cluster.DeleteKemuCluster(clusterName)
-			Expect(err).NotTo(HaveOccurred(), "failed to delete cluster")
-
-			cmd := exec.Command("kind", "get", "clusters")
-			output, err := utils.Run(cmd)
-			Expect(err).NotTo(HaveOccurred(), "failed to list kind clusters")
-			Expect(output).NotTo(ContainSubstring(clusterName), "kind cluster e2e-simple still exist")
+			deleteCluster(clusterName)
 		})
 	})
 })
@@ -89,25 +89,15 @@ var _ = Describe("kemu API", Ordered, func() {
 			err := cluster.CreateKemuCluster("test/testdata/with-addons.yaml", clusterName, kubeconfig)
 			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
 
-			config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-			Expect(err).NotTo(HaveOccurred(), "failed to build config from kubeconfig")
-			client, err := kubernetes.NewForConfig(config)
-			Expect(err).NotTo(HaveOccurred(), "failed to build client from kubeconfig")
-
+			client := getClient(kubeconfig)
 			d, err := client.AppsV1().Deployments("kube-system").Get(context.Background(), "kwok-controller", metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred(), "failed to get addon deployment")
-			Expect(d.Status.ReadyReplicas).To(Equal(int32(1)), fmt.Sprintf("expected addon deployment to have 1 ready replica but got %d", d.Status.ReadyReplicas))
+			Expect(d.Status.ReadyReplicas).To(Equal(int32(1)), fmt.Sprintf("expected kwok addon deployment to have 1 ready replica but got %d", d.Status.ReadyReplicas))
 		})
 	})
 	Context("DeleteKemuCluster", func() {
 		It("should delete created Kind cluster with addons", func() {
-			err := cluster.DeleteKemuCluster(clusterName)
-			Expect(err).NotTo(HaveOccurred(), "failed to delete cluster")
-
-			cmd := exec.Command("kind", "get", "clusters")
-			output, err := utils.Run(cmd)
-			Expect(err).NotTo(HaveOccurred(), "failed to list kind clusters")
-			Expect(output).NotTo(ContainSubstring(clusterName), "kind cluster e2e-simple still exist")
+			deleteCluster(clusterName)
 		})
 	})
 })
@@ -117,15 +107,11 @@ var _ = Describe("kemu API", Ordered, func() {
 	kubeconfig := ".run/it-with-kwok.config"
 
 	Context("CreateKemuCluster", func() {
-		It("should create a Kind cluster with custom Kind config", func() {
+		It("should create a Kind cluster with kwok nodes", func() {
 			err := cluster.CreateKemuCluster("test/testdata/with-kwok-nodes.yaml", clusterName, kubeconfig)
 			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
 
-			config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-			Expect(err).NotTo(HaveOccurred(), "failed to build config from kubeconfig")
-			client, err := kubernetes.NewForConfig(config)
-			Expect(err).NotTo(HaveOccurred(), "failed to build client from kubeconfig")
-
+			client := getClient(kubeconfig)
 			data := []struct {
 				instanceType string
 				zone         string
@@ -167,14 +153,78 @@ var _ = Describe("kemu API", Ordered, func() {
 		})
 	})
 	Context("DeleteKemuCluster", func() {
-		It("should delete created Kind cluster with custom Kind config", func() {
-			err := cluster.DeleteKemuCluster(clusterName)
-			Expect(err).NotTo(HaveOccurred(), "failed to delete cluster")
+		It("should delete created Kind cluster with kwok nodes", func() {
+			deleteCluster(clusterName)
+		})
+	})
+})
 
-			cmd := exec.Command("kind", "get", "clusters")
-			output, err := utils.Run(cmd)
-			Expect(err).NotTo(HaveOccurred(), "failed to list kind clusters")
-			Expect(output).NotTo(ContainSubstring(clusterName), "kind cluster e2e-simple still exist")
+var _ = Describe("kemu API", Ordered, func() {
+	clusterName := "it-with-full-config"
+	kubeconfig := ".run/it-with-full-config.config"
+
+	Context("CreateKemuCluster", func() {
+		It("should create a Kind cluster with full config", func() {
+			err := cluster.CreateKemuCluster("test/testdata/with-full-config.yaml", clusterName, kubeconfig)
+			Expect(err).NotTo(HaveOccurred(), "failed to create cluster")
+
+			client := getClient(kubeconfig)
+			d, err := client.AppsV1().Deployments("kube-system").Get(context.Background(), "kwok-controller", metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred(), "failed to get addon deployment")
+			Expect(d.Status.ReadyReplicas).To(Equal(int32(1)), fmt.Sprintf("expected kwok addon deployment to have 1 ready replica but got %d", d.Status.ReadyReplicas))
+
+			d, err = client.AppsV1().Deployments("monitoring").Get(context.Background(), "prometheus-grafana", metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred(), "failed to get addon deployment")
+			Expect(d.Status.ReadyReplicas).To(Equal(int32(1)), fmt.Sprintf("expected prometheus addon deployment to have 1 ready replica but got %d", d.Status.ReadyReplicas))
+
+			data := []struct {
+				instanceType string
+				zone         string
+				expected     int
+			}{
+				{
+					"a2-ultragpu-8g",
+					"use1",
+					5,
+				},
+				{
+					"a2-ultragpu-8g",
+					"use2",
+					5,
+				},
+				{
+					"a2-ultragpu-8g",
+					"use3",
+					5,
+				},
+				{
+					"a3-highgpu-8g",
+					"use1",
+					5,
+				},
+				{
+					"a3-highgpu-8g",
+					"use2",
+					5,
+				},
+				{
+					"a3-ultragpu-8g",
+					"use1",
+					5,
+				},
+			}
+			for _, tc := range data {
+				nodes, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{
+					LabelSelector: fmt.Sprintf("node.kubernetes.io/instance-type=%s,topology.kubernetes.io/zone=%s", tc.instanceType, tc.zone),
+				})
+				Expect(err).NotTo(HaveOccurred(), "failed to list nodes")
+				Expect(len(nodes.Items)).To(Equal(tc.expected), fmt.Sprintf("expected %d nodes, got %d", tc.expected, len(nodes.Items)))
+			}
+		})
+	})
+	Context("DeleteKemuCluster", func() {
+		It("should delete created Kind cluster with full config", func() {
+			deleteCluster(clusterName)
 		})
 	})
 })

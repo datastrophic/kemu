@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	clusterConfigPath string
+	clusterConfig string
 	kubeconfig        string
 )
 
@@ -20,16 +20,16 @@ var createClusterCmd = &cobra.Command{
 		if err := cmd.Flags().Parse(os.Args); err != nil {
 			return err
 		}
-		if len(clusterConfigPath) == 0 {
+		if len(clusterConfig) == 0 {
 			return fmt.Errorf("--cluster-config is required")
 		}
 
-		return cluster.CreateKemuCluster(clusterConfigPath, clusterName, kubeconfig)
+		return cluster.CreateKemuCluster(clusterConfig, clusterName, kubeconfig)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(createClusterCmd)
-	createClusterCmd.Flags().StringVar(&clusterConfigPath, "cluster-config", "", "KEMU cluster configuration file")
+	createClusterCmd.Flags().StringVar(&clusterConfig, "cluster-config", "", "KEMU cluster configuration file or URL")
 	createClusterCmd.Flags().StringVar(&kubeconfig, "kubeconfig", "kemu.config", "KUBECONFIG file for accessing created KEMU cluster")
 }

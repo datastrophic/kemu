@@ -1,6 +1,6 @@
 # kemu
-A Kubernetes cluster Emulator based on [Kind (Kubernetes IN Docker)](https://kind.sigs.k8s.io/)
-and [KWOK (Kubernetes WithOut Kubelet)](https://kwok.sigs.k8s.io/).
+A Kubernetes Cluster Emulator Utility based on [Kind (Kubernetes in Docker)](https://kind.sigs.k8s.io/)
+and [KWOK (Kubernetes without Kubelet)](https://kwok.sigs.k8s.io/).
 
 Easily create large-scale emulated Kubernetes clusters with 1000s of nodes
 for workload scheduling experimentation and analysis with minimal hardware
@@ -20,10 +20,11 @@ Follow the [Quickstart](#quickstart) guide to see KEMU in action, and the
 * [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 * [Helm](https://helm.sh/docs/intro/install/)
 
-> NOTE: Following steps should be run from the root of this project.
-
 #### Install `kemu`
+Install from sources:
 ```shell
+git clone git@github.com:datastrophic/kemu.git
+cd kemu
 go install ./...
 ```
 

@@ -1,24 +1,57 @@
-# kemu
-A Kubernetes Cluster Emulator Utility based on [Kind (Kubernetes in Docker)](https://kind.sigs.k8s.io/)
-and [KWOK (Kubernetes without Kubelet)](https://kwok.sigs.k8s.io/).
+# KEMU - Kubernetes Cluster Emulator Utility
 
-Easily create large-scale emulated Kubernetes clusters with 1000s of nodes
-for workload scheduling experimentation and analysis with minimal hardware
-requirements.
+[![Go Report Card](https://goreportcard.com/badge/github.com/datastrophic/kemu)](https://goreportcard.com/report/github.com/datastrophic/kemu)
+[![License](https://img.shields.io/github/license/datastrophic/kemu)](LICENSE)
 
-The goal of the project is to provide a fully automated reproducible bootstrap
-of emulated clusters based on declarative specification.
+Test Kubernetes scheduling optimizations at scale without production risk.
 
-Follow the [Quickstart](#quickstart) guide to see KEMU in action, and the
-[Overview](#kemu-overview) section for additional details and configuration walkthrough.
+KEMU enables safe experimentation with workload scheduling, GPU allocation strategies,
+and cluster capacity planning by creating emulated clusters with thousands of nodes
+using minimal hardware.
+
+Built on [Kind](https://kind.sigs.k8s.io/) for control plane management and
+[KWOK](https://kwok.sigs.k8s.io/) for node emulation, KEMU provides a single
+declarative configuration to bootstrap reproducible emulated environments in minutes.
+
+**Perfect for:**
+* Testing scheduler modifications before production deployment
+* Validating GPU/resource allocation strategies across availability zones
+* Capacity planning and workload right-sizing experiments
+* CI/CD pipeline integration for automated testing
+
+**Read the blog post
+[KEMU: A Declarative Approach to Emulating Kubernetes Clusters at Scale](https://datastrophic.io/declarative-kubernetes-cluster-emulation-with-kemu/)**
+for a deep dive into KEMU's design, scheduling optimization use cases, and best practices.
+
+## Why KEMU?
+Setting up emulated clusters with Kind and KWOK requires juggling multiple tools,
+fragmented configurations, and custom scripts. Creating 1,000+ nodes with varying
+capacities and zone distribution quickly becomes overwhelming.
+
+KEMU simplifies this by providing:
+* **Single-spec configuration** - Define control plane, addons, and node topology in one YAML
+* **Reproducible clusters** - Deterministic bootstrap for humans and CI systems
+* **Built-in addon support** - Install schedulers, operators, and monitoring via Helm
+* **Minimal resources** - Emulate 1,000+ GPU nodes on a laptop (typically 4-6GB RAM)
+
+## Use Cases
+
+* **GPU Scheduling Optimization** - Test allocation strategies for A100/H100/H200 clusters
+* **Multi-Zone Placement** - Validate workload distribution across availability zones
+* **Scheduler Testing** - Safely experiment with Kueue, Volcano, Yunikorn, or custom schedulers
+* **Capacity Planning** - Model cluster growth and resource utilization
+* **CI Integration** - Automated testing of scheduling policies in pipelines
 
 ## Quickstart
 #### Prerequisites
-* [Go](https://go.dev/doc/install)
-* [Docker](https://docs.docker.com/engine/install)
-* [Kind](https://kind.sigs.k8s.io/)
-* [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
-* [Helm](https://helm.sh/docs/intro/install/)
+The following tools must be installed on your system:
+* [Docker](https://docs.docker.com/engine/install) - For running Kind containers
+* [Go 1.21+](https://go.dev/doc/install) - For building KEMU
+* [Kind](https://kind.sigs.k8s.io/) - Used by KEMU for control plane
+* [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) - For cluster interaction
+* [Helm](https://helm.sh/docs/intro/install/) - For addon installation
+
+**System requirements:** 8GB+ RAM recommended for clusters with 100+ nodes.
 
 #### Install `kemu`
 Install from sources:
@@ -80,32 +113,29 @@ kemu delete-cluster
 ```
 
 ## KEMU Overview
-KEMU provides a single-spec declarative approach for configuring control plane nodes,
-installing cluster addons, and defining emulated cluster nodes with various capacity
-and placement options.
+### Architecture
+KEMU is based on battle-proven technologies used by the Kubernetes community:
+* **Kind** provides a real Kubernetes control plane with actual Kubelet processes
+  for running operators, schedulers, and monitoring stacks
+* **KWOK** supplies emulated nodes that scale to thousands while consuming minimal resources
+* **Helm integration** automates installation of cluster dependencies (schedulers,
+  observability, workload operators)
 
-KEMU builds on Kind for control plane and worker nodes deployment which are used for
-running auxiliary software required for the experimentation. Examples include Prometheus
-Operator for observability, custom schedulers (Volcano, Yunikorn), workload management
-operators (Kueue, KubeRay), etc. Running these components requires actual Kubelet(s) to
-be available for scheduling, and Kind provides sufficient functionality for this.
+### Bootstrap Process
+When you run `kemu create-cluster`, KEMU:
+1. Parses your cluster specification
+2. Creates a Kind cluster for the control plane
+3. Installs specified Helm Charts (KWOK, Prometheus, custom schedulers, etc.)
+4. Generates emulated nodes with your defined capacity and placement
 
-To provide a reproducible cluster dependencies setup and configuration, KEMU supports
-cluster addons defined as Helm Charts. A `ClusterConfig` spec allows specifying a list
-of Helm Charts that are installed on cluster bootstrap automatically. Each cluster
-addon can be parametrized via `valuesObject` with the same content as the standard
-Helm values file.
-
-Kubelet emulation is based on KWOK, and KEMU provides a lightweight configuration
-scheme for defining node groups with various properties, and generates specified
-number of nodes automatically.
-
-The [Example Configuration](#example-configuration) section provides a `ClusterConfig`
-specification walkthrough and explanation of core configuration properties. 
+The result: a fully functional Kubernetes cluster optimized for scheduling
+experimentation, accessible via standard tools (kubectl, Helm, client SDKs).
 
 ### Example Configuration
-The following example demonstrates key components of the KEMU `ClusterConfig` specification.
-The specification contains 3 main sections:
+The following configuration creates a 15-node emulated cluster (5 per availability zone)
+with GPU capacity, Prometheus monitoring, and KWOK lifecycle management.
+
+The `ClusterConfig` specification has three main sections:
 * `kindConfig` - a YAML configuration file used for creating Kind Cluster. This is a standard
   [Kind Configuration](https://kind.sigs.k8s.io/docs/user/configuration/) which is passed to
   Kind cluster provisioner without any modifications.
@@ -169,6 +199,67 @@ spec:
           ephemeralStorage: 3Ti
           nvidia.com/gpu: 8
 ```
+
+For a larger example with 1,000 nodes and multiple GPU types (A100, H100, H200), see
+[examples/gcp-cluster.yaml](https://github.com/datastrophic/kemu/blob/main/examples/gcp-cluster.yaml).
+
+## What's Next?
+Once your cluster is running, try deploying a workload to test scheduling:
+```shell
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-workload-test
+spec:
+  nodeSelector:
+    datastrophic.io/gpu-type: nvidia-a100-80gb
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["use1"]
+  containers:
+  - name: test
+    image: busybox
+    command: ["sleep", "3600"]
+    resources:
+      requests:
+        nvidia.com/gpu: 1
+EOF
+
+# Verify scheduling
+kubectl get pod gpu-workload-test -o wide
+```
+
+**Explore more:**
+* See [examples/](examples/) for configurations with 1,000+ nodes and multiple GPU types
+* Check [examples/workloads/](examples/workloads/) for scheduling pattern examples
+* Visit [GitHub Issues](https://github.com/datastrophic/kemu/issues) to report bugs or request features
+
+## Troubleshooting
+**Cluster creation hangs or fails:**
+```shell
+# Verify Docker is running
+docker ps
+
+# Clean up any conflicting Kind clusters
+kind get clusters
+kind delete cluster --name kwok
+```
+
+**Nodes stuck in NotReady state:**
+* Ensure KWOK Helm charts are in `clusterAddons` (see example configuration)
+* Check KWOK pods: `kubectl get pods -n kube-system | grep kwok`
+
+**Helm addon installation fails:**
+* Verify internet connectivity for chart repository access
+* Check chart version availability: `helm search repo <repo-name>/<chart-name> --versions`
+
+For additional help, see [GitHub Issues](https://github.com/datastrophic/kemu/issues).
 
 ## Development
 KEMU relies on end-to-end and integration tests to verify its functionality.

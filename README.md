@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/datastrophic/kemu)](https://goreportcard.com/report/github.com/datastrophic/kemu)
 [![License](https://img.shields.io/github/license/datastrophic/kemu)](LICENSE)
 
-Test Kubernetes scheduling optimizations at scale without production risk.
+Test your Kubernetes scheduling optimizations at scale without production risk.
 
 KEMU enables safe experimentation with workload scheduling, GPU allocation strategies,
 and cluster capacity planning by creating emulated clusters with thousands of nodes
@@ -32,7 +32,7 @@ KEMU simplifies this by providing:
 * **Single-spec configuration** - Define control plane, addons, and node topology in one YAML
 * **Reproducible clusters** - Deterministic bootstrap for humans and CI systems
 * **Built-in addon support** - Install schedulers, operators, and monitoring via Helm
-* **Minimal resources** - Emulate 1,000+ GPU nodes on a laptop (typically 4-6GB RAM)
+* **Minimal resources** - Emulate 1,000+ GPU nodes on a laptop (typically 2-4GB RAM)
 
 ## Use Cases
 
@@ -51,7 +51,7 @@ The following tools must be installed on your system:
 * [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) - For cluster interaction
 * [Helm](https://helm.sh/docs/intro/install/) - For addon installation
 
-**System requirements:** 8GB+ RAM recommended for clusters with 100+ nodes.
+**System requirements:** 8GB+ RAM recommended for clusters with multiple addons and nodes.
 
 #### Install `kemu`
 Install from sources:
@@ -126,7 +126,7 @@ When you run `kemu create-cluster`, KEMU:
 1. Parses your cluster specification
 2. Creates a Kind cluster for the control plane
 3. Installs specified Helm Charts (KWOK, Prometheus, custom schedulers, etc.)
-4. Generates emulated nodes with your defined capacity and placement
+4. Generates emulated nodes based on your defined capacity and placement
 
 The result: a fully functional Kubernetes cluster optimized for scheduling
 experimentation, accessible via standard tools (kubectl, Helm, client SDKs).
@@ -139,11 +139,11 @@ The `ClusterConfig` specification has three main sections:
 * `kindConfig` - a YAML configuration file used for creating Kind Cluster. This is a standard
   [Kind Configuration](https://kind.sigs.k8s.io/docs/user/configuration/) which is passed to
   Kind cluster provisioner without any modifications.
-* `clusterAddons` define a list of Helm Charts to be installed as a part of cluster
+* `clusterAddons` define a list of Helm Charts to be installed as a part of the cluster
   bootstrap process. Each cluster addon can be provided with `valuesObject` containing
   Helm Chart values for the installation.
 * `nodeGroups` define groups of emulated nodes sharing similar properties (instance type, capacity)
-  and the placement of the nodes. Node placement allows configuring number of nodes in different
+  and the placement of the nodes. Node placement allows configuring the number of nodes in different
   availability zones.
 
 Example specification:
@@ -159,18 +159,6 @@ spec:
       - role: worker
       - role: worker
   clusterAddons:
-    - name: kwok
-      repoName: kwok
-      repoURL: https://kwok.sigs.k8s.io/charts/
-      namespace: kube-system
-      chart: kwok/kwok
-      version: 0.2.0
-    - name: kwok-stage-fast
-      repoName: kwok
-      repoURL: https://kwok.sigs.k8s.io/charts/
-      namespace: kube-system
-      chart: kwok/stage-fast
-      version: 0.2.0
     - name: prometheus
       repoName: prometheus-community
       repoURL: https://prometheus-community.github.io/helm-charts
@@ -204,35 +192,81 @@ For a larger example with 1,000 nodes and multiple GPU types (A100, H100, H200),
 [examples/gcp-cluster.yaml](https://github.com/datastrophic/kemu/blob/main/examples/gcp-cluster.yaml).
 
 ## What's Next?
-Once your cluster is running, try deploying a workload to test scheduling:
+Once your cluster is running, try deploying a workload to test scheduling. The example below demonstrates
+a Kubernetes Job with 5 Pods running in parallel. It configures the Pods to be scheduled in
+the same availability zone by specifying `podAffinity` configuration, and instructs the scheduler to
+place the Pods on A100 nodes via `nodeAffinity`. This job will allocate all GPU capacity in a single availability
+zone when using the cluster created earlier.
 ```shell
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Pod
+kubectl create -f - <<EOF
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: gpu-workload-test
+  generateName: a100-training-job-
 spec:
-  nodeSelector:
-    datastrophic.io/gpu-type: nvidia-a100-80gb
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: ["use1"]
-  containers:
-  - name: test
-    image: busybox
-    command: ["sleep", "3600"]
-    resources:
-      requests:
-        nvidia.com/gpu: 1
+  completions: 5
+  parallelism: 5
+  template:
+    metadata:
+      annotations:
+        pod-complete.stage.kwok.x-k8s.io/delay: "5m"
+      labels:
+        datastrophic.io/workload: "a100-job-with-az-affinity"
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "datastrophic.io/workload"
+                    operator: In
+                    values:
+                      - "a100-job-with-az-affinity"
+              topologyKey: topology.kubernetes.io/zone
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: datastrophic.io/gpu-type
+                    operator: In
+                    values: ["nvidia-a100-80gb"]
+                  - key: type
+                    operator: In
+                    values: ["kwok"]
+      tolerations:
+        - effect: "NoSchedule"
+          key: "kwok.x-k8s.io/node"
+          value: "fake"
+      containers:
+        - name: fake-container
+          image: fake-image
+          resources:
+            requests:
+              cpu: 24
+              memory: 500Gi
+              nvidia.com/gpu: 8
+            limits:
+              cpu: 24
+              memory: 500Gi
+              nvidia.com/gpu: 8
 EOF
 
-# Verify scheduling
-kubectl get pod gpu-workload-test -o wide
+# Verify scheduling:
+kubectl get pods -o wide
+
+NAME                            READY   STATUS    RESTARTS   AGE   IP           NODE                    NOMINATED NODE   READINESS GATES
+a100-training-job-dfmmw-2jz22   1/1     Running   0          31s   10.244.6.0   a2-ultragpu-8g-use1-4   <none>           <none>
+a100-training-job-dfmmw-5jstw   1/1     Running   0          31s   10.244.1.0   a2-ultragpu-8g-use1-0   <none>           <none>
+a100-training-job-dfmmw-bnvsz   1/1     Running   0          31s   10.244.4.0   a2-ultragpu-8g-use1-3   <none>           <none>
+a100-training-job-dfmmw-cnnx9   1/1     Running   0          31s   10.244.2.0   a2-ultragpu-8g-use1-1   <none>           <none>
+a100-training-job-dfmmw-jmq7c   1/1     Running   0          31s   10.244.3.0   a2-ultragpu-8g-use1-2   <none>           <none>
+```
+All pods in the submitted workload were scheduled on the nodes in the same availability zone and are running.
+Emulated Pods will be running until completion for the duration configured via Pod annotations:
+```
+annotations:
+  pod-complete.stage.kwok.x-k8s.io/delay: "5m"
 ```
 
 **Explore more:**
@@ -248,11 +282,10 @@ docker ps
 
 # Clean up any conflicting Kind clusters
 kind get clusters
-kind delete cluster --name kwok
+kind delete cluster --name kemu
 ```
 
 **Nodes stuck in NotReady state:**
-* Ensure KWOK Helm charts are in `clusterAddons` (see example configuration)
 * Check KWOK pods: `kubectl get pods -n kube-system | grep kwok`
 
 **Helm addon installation fails:**

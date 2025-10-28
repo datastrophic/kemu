@@ -13,6 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	kwokclient "sigs.k8s.io/kwok/pkg/client/clientset/versioned"
 )
 
 func kubeClientFromConfig(kubeconfig string) (*kubernetes.Clientset, error) {
@@ -22,6 +23,15 @@ func kubeClientFromConfig(kubeconfig string) (*kubernetes.Clientset, error) {
 	}
 
 	return kubernetes.NewForConfig(config)
+}
+
+func kwokClientFromConfig(kubeconfig string) (*kwokclient.Clientset, error) {
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return kwokclient.NewForConfig(config)
 }
 
 func helmClientFromConfig(kubeconfig, namespace string) (helmclient.Client, error) {

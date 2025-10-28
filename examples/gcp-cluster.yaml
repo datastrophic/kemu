@@ -22,18 +22,6 @@ spec:
         # configure proxy metrics bind address
         metricsBindAddress: 0.0.0.0
   clusterAddons:
-    - name: kwok
-      repoName: kwok
-      repoURL: https://kwok.sigs.k8s.io/charts/
-      namespace: kube-system
-      chart: kwok/kwok
-      version: 0.2.0
-    - name: kwok-stage-fast
-      repoName: kwok
-      repoURL: https://kwok.sigs.k8s.io/charts/
-      namespace: kube-system
-      chart: kwok/stage-fast
-      version: 0.2.0
     - name: prometheus
       repoName: prometheus-community
       repoURL: https://prometheus-community.github.io/helm-charts
@@ -73,6 +61,7 @@ spec:
           memory: 1360Gi
           ephemeralStorage: 3Ti
           nvidia.com/gpu: 8
+          pods: 110
     - name: a3-highgpu-8g
       placement:
         - availabilityZone: use1
@@ -88,6 +77,7 @@ spec:
           memory: 1872Gi
           ephemeralStorage: 6Ti
           nvidia.com/gpu: 8
+          pods: 110
     - name: a3-ultragpu-8g
       placement:
         - availabilityZone: use1
@@ -101,3 +91,4 @@ spec:
           memory: 2952Gi
           ephemeralStorage: 12Ti
           nvidia.com/gpu: 8
+          pods: 110

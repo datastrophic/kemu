@@ -19,7 +19,7 @@ const (
 	ManagedByKemuLabel = "kemu.datastrophic.io/managed"
 )
 
-func CreateClusterNodes(config api.ClusterConfig, kubeconfig string) error {
+func CreateClusterNodes(nodeGroups []api.NodeGroup, kubeconfig string) error {
 	slog.Info("creating KWOK cluster nodes")
 
 	kubeClient, err := kubeClientFromConfig(kubeconfig)
@@ -28,7 +28,7 @@ func CreateClusterNodes(config api.ClusterConfig, kubeconfig string) error {
 	}
 
 	var nodes []corev1.Node
-	for _, nodeGroup := range config.Spec.NodeGroups {
+	for _, nodeGroup := range nodeGroups {
 		slog.Info("processing", "node group", nodeGroup.Name)
 		for _, placement := range nodeGroup.Placement {
 			nodes = append(nodes, createNodeSpecs(nodeGroup, placement)...)

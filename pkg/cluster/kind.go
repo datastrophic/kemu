@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"datastrophic.io/kemu/pkg/api"
 	"sigs.k8s.io/e2e-framework/klient"
 	"sigs.k8s.io/e2e-framework/pkg/utils"
 	"sigs.k8s.io/e2e-framework/third_party/kind"
@@ -23,13 +22,13 @@ func kindClusterExists(name string) bool {
 	return false
 }
 
-func createKindClusterWithConfig(config api.ClusterConfig, name, kubeconfig string) error {
+func createKindClusterWithConfig(kindConfig string, name, kubeconfig string) error {
 	slog.Info("creating kind cluster", "name", name, "kubeconfig", kubeconfig)
 
 	var configFile *os.File
 	var err error
-	if len(config.Spec.KindConfig) > 0 {
-		configFile, err = writeTempFile(config.Spec.KindConfig)
+	if len(kindConfig) > 0 {
+		configFile, err = writeTempFile(kindConfig)
 		if err != nil {
 			return err
 		}
@@ -39,7 +38,7 @@ func createKindClusterWithConfig(config api.ClusterConfig, name, kubeconfig stri
 	kindClusterProvider := kind.NewProvider().SetDefaults().WithName(name)
 	args := []string{"--kubeconfig", kubeconfig}
 	if configFile != nil {
-		slog.Info(fmt.Sprintf("using provided kind config:\n%s", config.Spec.KindConfig))
+		slog.Info(fmt.Sprintf("using provided kind config:\n%s", kindConfig))
 		args = append(args, "--config", configFile.Name())
 	}
 

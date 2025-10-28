@@ -11,7 +11,7 @@ import (
 	helmclient "github.com/mittwald/go-helm-client"
 )
 
-func InstallOrUpgradeAddons(config api.ClusterConfig, kubeconfig string) error {
+func InstallOrUpgradeAddons(addons []api.ClusterAddon, kubeconfig string) error {
 	slog.Info("installing cluster addons")
 	helmClient, err := helmClientFromConfig(kubeconfig, "")
 	if err != nil {
@@ -20,7 +20,7 @@ func InstallOrUpgradeAddons(config api.ClusterConfig, kubeconfig string) error {
 
 	slog.Info("adding Helm Chart repositories")
 	repos := make(map[string]repo.Entry)
-	for _, addon := range config.Spec.ClusterAddons {
+	for _, addon := range addons {
 		repos[addon.RepoURL] = repo.Entry{
 			Name: addon.RepoName,
 			URL:  addon.RepoURL,
@@ -34,7 +34,7 @@ func InstallOrUpgradeAddons(config api.ClusterConfig, kubeconfig string) error {
 	}
 
 	// Install Helm Charts.
-	for _, addon := range config.Spec.ClusterAddons {
+	for _, addon := range addons {
 		slog.Info("installing addon", "name", addon.Name, "namespace", addon.Namespace, "chart", addon.Chart, "version", addon.Version)
 
 		// Reinitialize the client to match the target release namespace.

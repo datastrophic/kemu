@@ -15,15 +15,17 @@ func CreateKemuCluster(configPath, name, kubeconfig string) error {
 	if kindClusterExists(name) {
 		return fmt.Errorf("underlying kind cluster %q already exists. it needs to be deleted first", name)
 	}
-	if err = createKindClusterWithConfig(clusterConfig, name, kubeconfig); err != nil {
+	if err = createKindClusterWithConfig(clusterConfig.Spec.KindConfig, name, kubeconfig); err != nil {
 		return err
 	}
-
-	err = InstallOrUpgradeAddons(clusterConfig, kubeconfig)
+	if err = InstallKWOK(kubeconfig); err != nil {
+		return err
+	}
+	err = InstallOrUpgradeAddons(clusterConfig.Spec.ClusterAddons, kubeconfig)
 	if err != nil {
 		return err
 	}
-	err = CreateClusterNodes(clusterConfig, kubeconfig)
+	err = CreateClusterNodes(clusterConfig.Spec.NodeGroups, kubeconfig)
 	if err != nil {
 		return err
 	}

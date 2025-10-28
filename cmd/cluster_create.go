@@ -10,7 +10,7 @@ import (
 
 var (
 	clusterConfig string
-	kubeconfig        string
+	kubeconfig    string
 )
 
 var createClusterCmd = &cobra.Command{

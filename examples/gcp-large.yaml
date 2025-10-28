@@ -1,0 +1,100 @@
+apiVersion: kemu.datastrophic.io/v1alpha1
+kind: ClusterConfig
+spec:
+  kindConfig: |
+    apiVersion: kind.x-k8s.io/v1alpha4
+    kind: Cluster
+    kubeadmConfigPatches:
+      - |-
+        kind: ClusterConfiguration
+        etcd:
+          local:
+            extraArgs:
+              listen-metrics-urls: http://0.0.0.0:2381
+        controllerManager:
+          extraArgs:
+            bind-address: 0.0.0.0
+        scheduler:
+          extraArgs:
+            bind-address: 0.0.0.0
+      - |-
+        kind: KubeProxyConfiguration
+        # configure proxy metrics bind address
+        metricsBindAddress: 0.0.0.0
+  clusterAddons:
+    - name: prometheus
+      repoName: prometheus-community
+      repoURL: https://prometheus-community.github.io/helm-charts
+      namespace: monitoring
+      chart: prometheus-community/kube-prometheus-stack
+      version: 75.16.1
+      valuesObject: |
+        alertmanager:
+          enabled: false
+        kubeEtcd:
+          service:
+            targetPort: 2381
+        prometheusOperator:
+            admissionWebhooks:
+              enabled: false
+              patch:
+                enabled: false
+            tls:
+              enabled: false
+            tlsProxy:
+              enabled: false
+  nodeGroups:
+    - name: a2-ultragpu-8g
+      placement:
+        - availabilityZone: use1
+          replicas: 500
+        - availabilityZone: use2
+          replicas: 500
+        - availabilityZone: use3
+          replicas: 500
+      nodeTemplate:
+        metadata:
+          labels:
+            datastrophic.io/gpu-type: nvidia-a100-80gb
+        capacity:
+          cpu: 96
+          memory: 1360Gi
+          ephemeralStorage: 3Ti
+          nvidia.com/gpu: 8
+          pods: 110
+    - name: a3-highgpu-8g
+      placement:
+        - availabilityZone: use1
+          replicas: 250
+        - availabilityZone: use2
+          replicas: 250
+        - availabilityZone: use3
+          replicas: 250
+      nodeTemplate:
+        metadata:
+          labels:
+            datastrophic.io/gpu-type: nvidia-h100-80gb
+        capacity:
+          cpu: 208
+          memory: 1872Gi
+          ephemeralStorage: 6Ti
+          nvidia.com/gpu: 8
+          pods: 110
+    - name: a3-ultragpu-8g
+      placement:
+        - availabilityZone: use1
+          replicas: 100
+        - availabilityZone: use2
+          replicas: 100
+        - availabilityZone: use3
+          replicas: 100
+      nodeTemplate:
+        metadata:
+          labels:
+            datastrophic.io/gpu-type: nvidia-h200-141gb
+        capacity:
+          cpu: 224
+          memory: 2952Gi
+          ephemeralStorage: 12Ti
+          nvidia.com/gpu: 8
+          pods: 110

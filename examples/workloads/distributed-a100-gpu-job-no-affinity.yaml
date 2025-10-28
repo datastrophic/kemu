@@ -1,28 +1,17 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: a100-training-job-with-az-affinity-
+  generateName: a100-training-job-no-affinity-
 spec:
-  completions: 5
-  parallelism: 5
+  completions: 3
+  parallelism: 3
   template:
     metadata:
       annotations:
         pod-complete.stage.kwok.x-k8s.io/delay: "5m"
-      labels:
-        datastrophic.io/workload: "a100-job-with-az-affinity"
     spec:
       restartPolicy: Never
       affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: "datastrophic.io/workload"
-                    operator: In
-                    values:
-                      - "a100-job-with-az-affinity"
-              topologyKey: topology.kubernetes.io/zone
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

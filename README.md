@@ -63,7 +63,7 @@ go install ./...
 
 #### Create a cluster
 ```shell
-kemu create-cluster --cluster-config examples/gcp-cluster.yaml --kubeconfig $(pwd)/kemu.config
+kemu create-cluster --cluster-config examples/gcp-small.yaml --kubeconfig $(pwd)/kemu.config
 ```
 
 #### Explore the cluster
@@ -188,8 +188,8 @@ spec:
           nvidia.com/gpu: 8
 ```
 
-For a larger example with 1,000 nodes and multiple GPU types (A100, H100, H200), see
-[examples/gcp-cluster.yaml](https://github.com/datastrophic/kemu/blob/main/examples/gcp-cluster.yaml).
+For a larger example with 1,000+ nodes and multiple GPU types (A100, H100, H200), see
+[examples/gcp-large.yaml](https://github.com/datastrophic/kemu/blob/main/examples/gcp-large.yaml).
 
 ## What's Next?
 Once your cluster is running, try deploying a workload to test scheduling. The example below demonstrates

@@ -124,7 +124,7 @@
           "editorMode": "code",
           "expr": "count by (label_node_kubernetes_io_instance_type,label_datastrophic_io_gpu_type,label_topology_kubernetes_io_zone) (kube_node_labels{label_node_kubernetes_io_instance_type!=\"\", label_node_kubernetes_io_instance_type=~\"$instance_type\", label_datastrophic_io_gpu_type=~\"$gpu_type\", label_topology_kubernetes_io_zone=~\"$availability_zone\"})",
           "format": "time_series",
-          "legendFormat": "{{label_datastrophic_io_gpu_type}} - {{label_topology_kubernetes_io_zone}}",
+          "legendFormat": "{{label_node_kubernetes_io_instance_type}} - {{label_topology_kubernetes_io_zone}}",
           "range": true,
           "refId": "A"
         }

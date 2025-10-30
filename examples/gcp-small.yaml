@@ -48,6 +48,24 @@ spec:
         kube-state-metrics:
           metricLabelsAllowlist:
             - nodes=[datastrophic.io/gpu-type,topology.kubernetes.io/zone,node.kubernetes.io/instance-type]
+        grafana:
+          dashboardProviders:
+            dashboardproviders.yaml:
+              apiVersion: 1
+              providers:
+              - name: 'default'
+                orgId: 1
+                folder: ''
+                type: file
+                disableDeletion: false
+                editable: true
+                options:
+                  path: /var/lib/grafana/dashboards/default
+          dashboards:
+            default:
+              kemu-cluster-overview:
+                url: https://gist.githubusercontent.com/akirillov/a17e66557c19b9b26b158ff822852fae/raw/bee89948b64b74154ba26165c4e58df87ddca2cb/kemu-cluster-overview-dashboard.json
+                datasource: Prometheus
   nodeGroups:
     - name: a2-ultragpu-8g
       placement:

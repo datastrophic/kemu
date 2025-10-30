@@ -1,4 +1,4 @@
-# KEMU - Kubernetes Cluster Emulator Utility
+# KEMU: A Declarative Kubernetes Emulator Utility
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/datastrophic/kemu)](https://goreportcard.com/report/github.com/datastrophic/kemu)
 [![License](https://img.shields.io/github/license/datastrophic/kemu)](LICENSE)

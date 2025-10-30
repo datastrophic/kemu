@@ -43,6 +43,11 @@ spec:
               enabled: false
             tlsProxy:
               enabled: false
+        kubeStateMetrics:
+          enabled: true
+        kube-state-metrics:
+          metricLabelsAllowlist:
+            - nodes=[datastrophic.io/gpu-type,topology.kubernetes.io/zone,node.kubernetes.io/instance-type]
   nodeGroups:
     - name: a2-ultragpu-8g
       placement:

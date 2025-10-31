@@ -1,10 +1,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: h100-training-job-with-az-affinity-
+  generateName: job-a100-no-az-affinity-
 spec:
-  completions: 20
-  parallelism: 20
+  completions: 25
+  parallelism: 25
   template:
     metadata:
       annotations:
@@ -12,20 +12,13 @@ spec:
     spec:
       restartPolicy: Never
       affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: "batch.kubernetes.io/controller-uid"
-                    operator: Exists
-              topologyKey: topology.kubernetes.io/zone
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
                   - key: datastrophic.io/gpu-type
                     operator: In
-                    values: ["nvidia-h100-80gb"]
+                    values: ["nvidia-a100-80gb"]
                   - key: type
                     operator: In
                     values: ["kwok"]
@@ -39,9 +32,9 @@ spec:
           resources:
             requests:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8
             limits:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8

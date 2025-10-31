@@ -1,10 +1,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: h200-training-job-with-az-affinity-
+  generateName: job-h100-with-az-affinity-
 spec:
-  completions: 10
-  parallelism: 10
+  completions: 20
+  parallelism: 20
   template:
     metadata:
       annotations:
@@ -25,7 +25,7 @@ spec:
               - matchExpressions:
                   - key: datastrophic.io/gpu-type
                     operator: In
-                    values: ["nvidia-h200-141gb"]
+                    values: ["nvidia-h100-80gb"]
                   - key: type
                     operator: In
                     values: ["kwok"]
@@ -39,9 +39,9 @@ spec:
           resources:
             requests:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8
             limits:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8

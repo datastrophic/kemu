@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: a100-training-job-with-az-affinity-
+  generateName: job-a100-with-az-affinity-
 spec:
   completions: 25
   parallelism: 25
@@ -19,7 +19,6 @@ spec:
                   - key: "batch.kubernetes.io/controller-uid"
                     operator: Exists
               topologyKey: topology.kubernetes.io/zone
-
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -40,9 +39,9 @@ spec:
           resources:
             requests:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8
             limits:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8

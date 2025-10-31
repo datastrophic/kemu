@@ -240,12 +240,12 @@ spec:
           image: fake-image
           resources:
             requests:
-              cpu: 24
-              memory: 500Gi
+              cpu: 180
+              memory: 1100Gi
               nvidia.com/gpu: 8
             limits:
-              cpu: 24
-              memory: 500Gi
+              cpu: 180
+              memory: 1100Gi
               nvidia.com/gpu: 8
 EOF
 

@@ -274,6 +274,28 @@ annotations:
 * Check [examples/workloads/](examples/workloads/) for scheduling pattern examples
 * Visit [GitHub Issues](https://github.com/datastrophic/kemu/issues) to report bugs or request features
 
+## Observability
+KEMU cluster examples include a fully configured Prometheus stack with
+the default Kubernetes dashboards and cluster overview dashboard pre-installed.
+
+To access the dashboards via Grafana UI, run:
+```
+kubectl port-forward --namespace monitoring svc/prometheus-grafana 8080:80
+```
+
+Retrieve the Grafana password:
+```
+kubectl get secret prometheus-grafana -n monitoring -o jsonpath='{.data.admin-password}' | base64 -d
+```
+
+Navigate to [http://localhost:8080/d/kemu-cluster-overview/kemu-cluster-overview](http://localhost:8080/d/kemu-cluster-overview/kemu-cluster-overview)
+and log in using username `admin` and the retrieved password.
+
+The KEMU Cluster Overview dashboard provides cluster-level information about cluster
+composition, available and allocated capacity, and their distribution across availability zones and
+device types:
+![KEMU Cluster Overview](docs/images/kemu-cluster-overview-dashboard.png)
+
 ## Troubleshooting
 **Cluster creation hangs or fails:**
 ```shell

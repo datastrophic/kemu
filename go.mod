@@ -1,4 +1,4 @@
-module datastrophic.io/kemu
+module github.com/datastrophic/kemu
 
 go 1.24.5
 

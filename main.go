@@ -1,6 +1,6 @@
 package main
 
-import "datastrophic.io/kemu/cmd"
+import "github.com/datastrophic/kemu/cmd"
 
 func main() {
 	cmd.Execute()

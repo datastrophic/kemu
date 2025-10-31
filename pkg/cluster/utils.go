@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"os"
 
-	"datastrophic.io/kemu/pkg/api"
+	"github.com/datastrophic/kemu/pkg/api"
 	helmclient "github.com/mittwald/go-helm-client"
 	"gopkg.in/yaml.v3"
 	"k8s.io/client-go/kubernetes"

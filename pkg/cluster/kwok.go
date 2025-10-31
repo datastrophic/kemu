@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"datastrophic.io/kemu/pkg/api"
+	"github.com/datastrophic/kemu/pkg/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kwok "sigs.k8s.io/kwok/pkg/apis/v1alpha1"
 )

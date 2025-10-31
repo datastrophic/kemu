@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"datastrophic.io/kemu/pkg/cluster"
+	"github.com/datastrophic/kemu/pkg/cluster"
 	"github.com/spf13/cobra"
 )
 

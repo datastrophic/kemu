@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"datastrophic.io/kemu/pkg/api"
+	"github.com/datastrophic/kemu/pkg/api"
 	"helm.sh/helm/v3/pkg/repo"
 
 	helmclient "github.com/mittwald/go-helm-client"

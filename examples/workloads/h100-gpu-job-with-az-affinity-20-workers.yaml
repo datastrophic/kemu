@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: h100-training-job-with-az-affinity-
+spec:
+  completions: 20
+  parallelism: 20
+  template:
+    metadata:
+      annotations:
+        pod-complete.stage.kwok.x-k8s.io/delay: "5m"
+      labels:
+        datastrophic.io/workload: "h100-job-with-az-affinity"
+    spec:
+      restartPolicy: Never
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "datastrophic.io/workload"
+                    operator: In
+                    values:
+                      - "h100-job-with-az-affinity"
+              topologyKey: topology.kubernetes.io/zone
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: datastrophic.io/gpu-type
+                    operator: In
+                    values: ["nvidia-h100-80gb"]
+                  - key: type
+                    operator: In
+                    values: ["kwok"]
+      tolerations:
+        - effect: "NoSchedule"
+          key: "kwok.x-k8s.io/node"
+          value: "fake"
+      containers:
+        - name: fake-container
+          image: fake-image
+          resources:
+            requests:
+              cpu: 24
+              memory: 500Gi
+              nvidia.com/gpu: 8
+            limits:
+              cpu: 24
+              memory: 500Gi
+              nvidia.com/gpu: 8

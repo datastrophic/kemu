@@ -9,8 +9,6 @@ spec:
     metadata:
       annotations:
         pod-complete.stage.kwok.x-k8s.io/delay: "5m"
-      labels:
-        datastrophic.io/workload: "a100-job-with-az-affinity"
     spec:
       restartPolicy: Never
       affinity:
@@ -18,11 +16,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchExpressions:
-                  - key: "datastrophic.io/workload"
-                    operator: In
-                    values:
-                      - "a100-job-with-az-affinity"
+                  - key: "batch.kubernetes.io/controller-uid"
+                    operator: Exists
               topologyKey: topology.kubernetes.io/zone
+
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:

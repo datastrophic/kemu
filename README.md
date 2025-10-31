@@ -53,17 +53,14 @@ The following tools must be installed on your system:
 
 **System requirements:** 8GB+ RAM recommended for clusters with multiple addons and nodes.
 
-#### Install `kemu`
-Install from sources:
+#### Install `kemu`:
 ```shell
-git clone git@github.com:datastrophic/kemu.git
-cd kemu
-go install ./...
+go install github.com/datastrophic/kemu
 ```
 
 #### Create a cluster
 ```shell
-kemu create-cluster --cluster-config examples/gcp-small.yaml --kubeconfig $(pwd)/kemu.config
+kemu create-cluster  --kubeconfig $(pwd)/kemu.config --cluster-config https://raw.githubusercontent.com/datastrophic/kemu/refs/tags/v0.1.0/examples/gcp-small.yaml
 ```
 
 #### Explore the cluster
@@ -189,7 +186,7 @@ spec:
 ```
 
 For a larger example with 1,000+ nodes and multiple GPU types (A100, H100, H200), see
-[examples/gcp-large.yaml](https://github.com/datastrophic/kemu/blob/main/examples/gcp-large.yaml).
+[examples/gcp-large.yaml](examples/gcp-large.yaml).
 
 ## What's Next?
 Once your cluster is running, try deploying a workload to test scheduling. The example below demonstrates

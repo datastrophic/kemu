@@ -1,24 +1,17 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: h100-training-job-with-az-affinity-
+  generateName: job-h100-no-az-affinity-
 spec:
-  completions: 20
-  parallelism: 20
+  completions: 50
+  parallelism: 50
   template:
     metadata:
       annotations:
-        pod-complete.stage.kwok.x-k8s.io/delay: "5m"
+        pod-complete.stage.kwok.x-k8s.io/delay: "10m"
     spec:
       restartPolicy: Never
       affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: "batch.kubernetes.io/controller-uid"
-                    operator: Exists
-              topologyKey: topology.kubernetes.io/zone
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
@@ -39,9 +32,9 @@ spec:
           resources:
             requests:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8
             limits:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8

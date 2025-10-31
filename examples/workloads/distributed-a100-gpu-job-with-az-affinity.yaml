@@ -8,7 +8,7 @@ spec:
   template:
     metadata:
       annotations:
-        pod-complete.stage.kwok.x-k8s.io/delay: "5m"
+        pod-complete.stage.kwok.x-k8s.io/delay: "10m"
       labels:
         datastrophic.io/workload: "a100-job-with-az-affinity"
     spec:
@@ -43,9 +43,9 @@ spec:
           resources:
             requests:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8
             limits:
               cpu: 24
-              memory: 500Gi
+              memory: 1100Gi
               nvidia.com/gpu: 8

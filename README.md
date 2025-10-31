@@ -206,7 +206,7 @@ spec:
   template:
     metadata:
       annotations:
-        pod-complete.stage.kwok.x-k8s.io/delay: "5m"
+        pod-complete.stage.kwok.x-k8s.io/delay: "10m"
       labels:
         datastrophic.io/workload: "a100-job-with-az-affinity"
     spec:
@@ -240,12 +240,12 @@ spec:
           image: fake-image
           resources:
             requests:
-              cpu: 24
-              memory: 500Gi
+              cpu: 180
+              memory: 1100Gi
               nvidia.com/gpu: 8
             limits:
-              cpu: 24
-              memory: 500Gi
+              cpu: 180
+              memory: 1100Gi
               nvidia.com/gpu: 8
 EOF
 
@@ -263,7 +263,7 @@ All pods in the submitted workload were scheduled on the nodes in the same avail
 Emulated Pods will be running until completion for the duration configured via Pod annotations:
 ```
 annotations:
-  pod-complete.stage.kwok.x-k8s.io/delay: "5m"
+  pod-complete.stage.kwok.x-k8s.io/delay: "10m"
 ```
 
 **Explore more:**

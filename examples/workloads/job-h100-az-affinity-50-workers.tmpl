@@ -1,24 +1,37 @@
+# Note: this is a template manifest that requires JOB_ID placeholder
+# substitution before applying to a cluster for configuring AZ affinity.
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: a100-training-job-no-affinity-
+  generateName: job-h100-with-az-affinity-
 spec:
-  completions: 3
-  parallelism: 3
+  completions: 50
+  parallelism: 50
   template:
     metadata:
       annotations:
         pod-complete.stage.kwok.x-k8s.io/delay: "10m"
+      labels:
+        datastrophic.io/workload: "JOB_ID"
     spec:
       restartPolicy: Never
       affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: datastrophic.io/workload
+                    operator: In
+                    values:
+                      - "JOB_ID"
+              topologyKey: topology.kubernetes.io/zone
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
                   - key: datastrophic.io/gpu-type
                     operator: In
-                    values: ["nvidia-a100-80gb"]
+                    values: ["nvidia-h100-80gb"]
                   - key: type
                     operator: In
                     values: ["kwok"]

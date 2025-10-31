@@ -1,10 +1,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: a100-training-job-no-affinity-
+  generateName: job-a100-no-az-affinity-
 spec:
-  completions: 3
-  parallelism: 3
+  completions: 100
+  parallelism: 100
   template:
     metadata:
       annotations:

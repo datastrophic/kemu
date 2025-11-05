@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 0,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -118,13 +118,13 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
           "expr": "count by (label_node_kubernetes_io_instance_type,label_datastrophic_io_gpu_type,label_topology_kubernetes_io_zone) (kube_node_labels{label_node_kubernetes_io_instance_type!=\"\", label_node_kubernetes_io_instance_type=~\"$instance_type\", label_datastrophic_io_gpu_type=~\"$gpu_type\", label_topology_kubernetes_io_zone=~\"$availability_zone\"})",
           "format": "time_series",
-          "legendFormat": "{{label_node_kubernetes_io_instance_type}} - {{label_topology_kubernetes_io_zone}}",
+          "legendFormat": "{{label_datastrophic_io_gpu_type}} - {{label_topology_kubernetes_io_zone}}",
           "range": true,
           "refId": "A"
         }
@@ -216,7 +216,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -286,7 +286,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -356,7 +356,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -426,7 +426,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "datasource": {
@@ -502,7 +502,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "datasource": {
@@ -580,7 +580,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -644,7 +644,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -708,7 +708,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -804,7 +804,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -913,7 +913,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -1022,7 +1022,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -1112,7 +1112,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -1173,7 +1173,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -1234,7 +1234,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -1293,6 +1293,7 @@
           },
           "mappings": [],
           "min": 0,
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1325,14 +1326,27 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum by (phase) (\n  kube_pod_status_phase\n  * on(pod, namespace) group_left(node)\n    kube_pod_info\n  * on(node) group_left(label_datastrophic_io_gpu_type, label_topology_kubernetes_io_zone)\n    kube_node_labels{\n      label_datastrophic_io_gpu_type!=\"\", \n      label_datastrophic_io_gpu_type=~\"$gpu_type\",\n      label_topology_kubernetes_io_zone=~\"$availability_zone\"\n    }\n)",
+          "expr": "sum by (phase) (\n  kube_pod_status_phase {phase!=\"Pending\"}\n  * on(pod, namespace) group_left(node)\n    kube_pod_info\n  * on(node) group_left(label_datastrophic_io_gpu_type, label_topology_kubernetes_io_zone)\n    kube_node_labels{\n      label_datastrophic_io_gpu_type!=\"\", \n      label_datastrophic_io_gpu_type=~\"$gpu_type\",\n      label_topology_kubernetes_io_zone=~\"$availability_zone\"\n    }\n)",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "count by (phase) (\n  (kube_pod_status_phase{phase=\"Pending\"} > 0)\n  * on(pod, namespace) group_left()\n    (kube_pod_container_resource_requests{resource=\"nvidia_com_gpu\"} > 0)\n)",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "B"
         }
       ],
       "title": "Pod status by phase",
@@ -1384,6 +1398,7 @@
           },
           "mappings": [],
           "min": 0,
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1416,7 +1431,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.0",
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "editorMode": "code",
@@ -1428,195 +1443,10 @@
       ],
       "title": "Running Pods by Availability Zone",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 1,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "min": 0,
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 43
-      },
-      "id": 28,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.2.0",
-      "targets": [
-        {
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "count(\n  (kube_pod_status_phase{phase=\"Pending\"} > 0)\n  * on(pod, namespace) group_left()\n    (kube_pod_container_resource_requests{resource=\"nvidia_com_gpu\"} > 0)\n)",
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Pending Pods with GPU requests",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 1,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "min": 0,
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 43
-      },
-      "id": 2,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.2.0",
-      "targets": [
-        {
-          "editorMode": "code",
-          "expr": "sum (\n  kube_node_status_capacity{resource=\"nvidia_com_gpu\"} \n  * on(node) group_left(label_datastrophic_io_gpu_type, label_topology_kubernetes_io_zone) \n    kube_node_labels{\n      label_datastrophic_io_gpu_type!=\"\", \n      label_datastrophic_io_gpu_type=~\"$gpu_type\",\n      label_topology_kubernetes_io_zone=~\"$availability_zone\"\n    }\n)\n-\nsum (\n  kube_pod_container_resource_requests{resource=\"nvidia_com_gpu\"} \n  * on(pod, namespace) group_left(phase) (kube_pod_status_phase{phase=\"Running\"} == 1)\n  * on(pod, namespace) group_left(node) kube_pod_info\n  * on(node) group_left(label_datastrophic_io_gpu_type, label_topology_kubernetes_io_zone) \n    kube_node_labels{\n      label_datastrophic_io_gpu_type!=\"\", \n      label_datastrophic_io_gpu_type=~\"$gpu_type\",\n      label_topology_kubernetes_io_zone=~\"$availability_zone\"\n    }\n   or vector(0)\n)",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Unallocated GPUs",
-      "type": "timeseries"
     }
   ],
   "preload": false,
+  "refresh": "auto",
   "schemaVersion": 42,
   "tags": [],
   "templating": {
@@ -1688,5 +1518,5 @@
   "timezone": "browser",
   "title": "KEMU Cluster Overview",
   "uid": "kemu-cluster-overview",
-  "version": 19
+  "version": 1
 }

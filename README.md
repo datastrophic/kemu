@@ -13,7 +13,9 @@ Built on [Kind](https://kind.sigs.k8s.io/) for control plane management and
 [KWOK](https://kwok.sigs.k8s.io/) for node emulation, KEMU provides a single
 declarative configuration to bootstrap reproducible emulated environments in minutes.
 
-![Cluster bootstrap using KEMU](docs/images/cluster-bootstrap-kemu.png)
+<div style="text-align: center">
+  <img src="docs/images/cluster-bootstrap-kemu.png" alt="Cluster bootstrap using KEMU">
+</div>
 
 **Perfect for:**
 * Testing scheduler modifications before production deployment
